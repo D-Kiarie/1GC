@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1GC Studios | Premier Roblox Development</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #050505; 
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        .glass { 
+            background: rgba(15, 15, 17, 0.65); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+
+        .glass-card {
+            background: linear-gradient(180deg, rgba(24, 24, 27, 0.8) 0%, rgba(15, 15, 17, 0.95) 100%);
+            border: 1px solid rgba(234, 179, 8, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(234, 179, 8, 0.4);
+            box-shadow: 0 12px 40px rgba(234, 179, 8, 0.15), inset 0 0 20px rgba(234, 179, 8, 0.05);
+            transform: translateY(-4px);
+        }
+
+        .gold-gradient-text { 
+            background: linear-gradient(135deg, #fef08a 0%, #eab308 50%, #a16207 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+
+        .gold-glow {
+            position: absolute;
+            background: radial-gradient(circle, rgba(234,179,8,0.15) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #050505; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #3f3f46; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #eab308; }
+
+        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
+        
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+        
+        .shiny-overlay { 
+            mix-blend-mode: color-dodge; 
+            animation: pulseShiny 3s infinite alternate ease-in-out; 
+        }
+        @keyframes pulseShiny { 
+            0% { opacity: 0.3; filter: brightness(1); } 
+            100% { opacity: 0.9; filter: brightness(1.5); } 
+        }
+
+        .hero-banner {
+            background-image: linear-gradient(to bottom, rgba(5,5,5,0.2) 0%, #050505 100%), url('https://iili.io/ByoDDdP.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .ratio-bar-bg { background: #ef4444; height: 6px; border-radius: 4px; overflow: hidden; width: 100%; }
+        .ratio-bar-fg { background: #22c55e; height: 100%; border-radius: 4px; }
+        
+        .toast-enter { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body class="custom-scrollbar">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const BASE_SLUGS = [
+            {Name: "Nooby", Chance: 2, Image: "101359254129322", BaseDamage: 10, BaseHealth: 35},
+            {Name: "Sluggy", Chance: 4, Image: "82137758311317", BaseDamage: 25, BaseHealth: 88},
+            {Name: "Leafy", Chance: 8, Image: "87522449675751", BaseDamage: 50, BaseHealth: 175},
+            {Name: "Meow", Chance: 15, Image: "136961230918328", BaseDamage: 100, BaseHealth: 350},
+            {Name: "Buzz", Chance: 25, Image: "129773604169187", BaseDamage: 150, BaseHealth: 525},
+            {Name: "Pinch", Chance: 40, Image: "104486566687252", BaseDamage: 200, BaseHealth: 700},
+            {Name: "Berry", Chance: 60, Image: "120040648092190", BaseDamage: 250, BaseHealth: 875},
+            {Name: "Huh", Chance: 80, Image: "107776853604605", BaseDamage: 300, BaseHealth: 1050},
+            {Name: "Fleafy", Chance: 120, Image: "140220329303256", BaseDamage: 350, BaseHealth: 1225},
+            {Name: "Hops", Chance: 180, Image: "113759747149141", BaseDamage: 400, BaseHealth: 1400},
+            {Name: "SunSet", Chance: 250, Image: "123649272690231", BaseDamage: 500, BaseHealth: 1750},
+            {Name: "Grizzly", Chance: 400, Image: "119825057074675", BaseDamage: 600, BaseHealth: 2100},
+            {Name: "Witchy", Chance: 600, Image: "119649815413007", BaseDamage: 700, BaseHealth: 2450},
+            {Name: "Magmay", Chance: 900, Image: "124484003455586", BaseDamage: 800, BaseHealth: 2800},
+            {Name: "Mossy", Chance: 1500, Image: "72295584601597", BaseDamage: 950, BaseHealth: 3325},
+            {Name: "Shroomy", Chance: 3000, Image: "87818382572214", BaseDamage: 1100, BaseHealth: 3850},
+            {Name: "Icey", Chance: 6000, Image: "116008118181123", BaseDamage: 1250, BaseHealth: 4375},
+            {Name: "Squidy", Chance: 12000, Image: "94790561428234", BaseDamage: 1400, BaseHealth: 4900},
+            {Name: "Hall", Chance: 25000, Image: "120368312201481", BaseDamage: 1600, BaseHealth: 5600},
+            {Name: "Wizzy", Chance: 50000, Image: "136558501399941", BaseDamage: 1800, BaseHealth: 6300},
+            {Name: "Fetal", Chance: 100000, Image: "85167004446509", BaseDamage: 2000, BaseHealth: 7000},
+            {Name: "Woof", Chance: 250000, Image: "133631989177715", BaseDamage: 2200, BaseHealth: 7700},
+            {Name: "Sweets", Chance: 500000, Image: "90915971925959", BaseDamage: 2400, BaseHealth: 8400},
+            {Name: "TheKing", Chance: 1000000, Image: "101047304391449", BaseDamage: 2600, BaseHealth: 9100},
+            {Name: "Allie", Chance: 2500000, Image: "113157689082252", BaseDamage: 2800, BaseHealth: 9800},
+            {Name: "Lotl", Chance: 5000000, Image: "105084796916045", BaseDamage: 3000, BaseHealth: 10500},
+            {Name: "Frank", Chance: 10000000, Image: "88412456794183", BaseDamage: 3200, BaseHealth: 11200},
+            {Name: "Boom", Chance: 25000000, Image: "107209433374159", BaseDamage: 3500, BaseHealth: 12250},
+            {Name: "Halo", Chance: 75000000, Image: "105707875376135", BaseDamage: 3800, BaseHealth: 13300},
+            {Name: "Brew", Chance: 150000000, Image: "134293611041354", BaseDamage: 4100, BaseHealth: 14350},
+            {Name: "Orca", Chance: 300000000, Image: "98975959115757", BaseDamage: 4400, BaseHealth: 15400},
+            {Name: "Gob", Chance: 750000000, Image: "99518362066451", BaseDamage: 4700, BaseHealth: 16450},
+            {Name: "Org", Chance: 1500000000, Image: "74294549583761", BaseDamage: 5000, BaseHealth: 17500},
+            {Name: "Dairy", Chance: 3000000000, Image: "136111304034055", BaseDamage: 5300, BaseHealth: 18550},
+            {Name: "Webs", Chance: 7500000000, Image: "72576317018093", BaseDamage: 5600, BaseHealth: 19600},
+            {Name: "Spikky", Chance: 15000000000, Image: "83767075542776", BaseDamage: 5900, BaseHealth: 20650},
+            {Name: "Antel", Chance: 30000000000, Image: "70830028509974", BaseDamage: 6200, BaseHealth: 21700},
+            {Name: "Fast", Chance: 75000000000, Image: "70830028509974", BaseDamage: 6400, BaseHealth: 22400},
+            {Name: "Daisy", Chance: 150000000000, Image: "127189595600875", BaseDamage: 6600, BaseHealth: 23100},
+            {Name: "Pinky", Chance: 300000000000, Image: "131679629343161", BaseDamage: 6800, BaseHealth: 23800},
+            {Name: "Draco", Chance: 600000000000, Image: "131679629343161", BaseDamage: 6900, BaseHealth: 24150},
+            {Name: "Froze", Chance: 1000000000000, Image: "131679629343161", BaseDamage: 7000, BaseHealth: 24500}
+        ];
+
+        const VARIANTS = [
+            { key: "Normal", prefix: "", isShiny: false, isHuge: false, isBig: false, mDmg: 1, mHp: 1, mChance: 1 },
+            { key: "Big", prefix: "Big ", isShiny: false, isHuge: false, isBig: true, mDmg: 25, mHp: 25, mChance: 100 },
+            { key: "Huge", prefix: "Huge ", isShiny: false, isHuge: true, isBig: false, mDmg: 100, mHp: 100, mChance: 1000 },
+            { key: "Shiny", prefix: "Shiny ", isShiny: true, isHuge: false, isBig: false, mDmg: 10, mHp: 10, mChance: 250 },
+            { key: "Shiny Big", prefix: "Shiny Big ", isShiny: true, isHuge: false, isBig: true, mDmg: 250, mHp: 250, mChance: 25000 },
+            { key: "Shiny Huge", prefix: "Shiny Huge ", isShiny: true, isHuge: true, isBig: false, mDmg: 1000, mHp: 1000, mChance: 250000 }
+        ];
+
+        const getDynamicRarity = (chance) => {
+            if (chance >= 600000000000) return "Omnipotent";
+            if (chance >= 7500000000) return "Godly";
+            if (chance >= 150000000) return "Mythic";
+            if (chance >= 5000000) return "Legendary";
+            if (chance >= 50000) return "Epic";
+            if (chance >= 1500) return "Rare";
+            if (chance >= 120) return "Uncommon";
+            return "Common";
+        };
+
+        const ALL_SLUGS = [];
+        BASE_SLUGS.forEach(base => {
+            VARIANTS.forEach(v => {
+                const effChance = base.Chance * v.mChance;
+                ALL_SLUGS.push({
+                    Name: v.prefix + base.Name,
+                    BaseName: base.Name,
+                    VariantLabel: v.key,
+                    IsShiny: v.isShiny,
+                    IsHuge: v.isHuge,
+                    IsBig: v.isBig,
+                    Rarity: getDynamicRarity(effChance),
+                    Chance: effChance,
+                    Image: base.Image,
+                    BaseDamage: base.BaseDamage * v.mDmg,
+                    BaseHealth: base.BaseHealth * v.mHp
+                });
+            });
+        });
+
+        const RARITY_COLORS = {
+            "Common": "text-zinc-400 bg-zinc-400/10 border-zinc-400/20",
+            "Uncommon": "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+            "Rare": "text-blue-400 bg-blue-400/10 border-blue-400/20",
+            "Epic": "text-purple-400 bg-purple-400/10 border-purple-400/20",
+            "Legendary": "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
+            "Mythic": "text-red-500 bg-red-500/10 border-red-500/30",
+            "Godly": "text-pink-400 bg-pink-400/10 border-pink-400/30",
+            "Omnipotent": "text-cyan-400 bg-cyan-400/10 border-cyan-400/30"
+        };
+
+        const formatNumber = (num) => {
+            if (num >= 1e15) return (num / 1e15).toFixed(1) + 'Q';
+            if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+            return num.toString();
+        };
+
+        const Icons = {
+            Search: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            Grid: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>,
+            List: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>,
+            Refresh: ({c}) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
+            X: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            Sword: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="14.5" y1="17.5" x2="19.5" y2="22.5"/><line x1="4.5" y1="22.5" x2="9.5" y2="17.5"/><path d="m20.5 8.5-4-4"/><path d="M14 6 9.5 1.5a2.12 2.12 0 0 0-3 3L11 9"/><path d="M4 14l4.5-4.5a2.12 2.12 0 0 1 3 3L7 17"/><path d="m20.5 8.5-9 9"/><path d="m15.5 13.5-9 9"/></svg>,
+            Heart: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>,
+            Bookmark: ({f, c}) => <svg width="18" height="18" viewBox="0 0 24 24" fill={f ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>,
+            Database: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>,
+            Info: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>,
+            Home: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+            Gamepad: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M8 10v4"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/></svg>,
+            Users: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+            Eye: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
+            ThumbsUp: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/></svg>,
+            ThumbsDown: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z"/></svg>,
+            Star: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+            Discord: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/></svg>,
+            Play: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3l14 9-14 9V3z"/></svg>
+        };
+
+        const RobloxImage = ({ assetId, isShiny, isHuge, isBig, shinyOverlayUrl, sizeClass = "w-24 h-24" }) => {
+            const [imgUrl, setImgUrl] = React.useState("");
+            const [loaded, setLoaded] = React.useState(false);
+
+            React.useEffect(() => {
+                let mounted = true;
+                async function load() {
+                    try {
+                        const res = await fetch(`https://indexer-t9l1.onrender.com/api/proxy/thumbnail/${assetId}`);
+                        const data = await res.json();
+                        if (!mounted) return;
+                        setImgUrl(data?.imageUrl || "https://placehold.co/420x420/0a0a0c/eab308?text=N/A");
+                    } catch {
+                        if (!mounted) return;
+                        setImgUrl("https://placehold.co/420x420/0a0a0c/ef4444?text=ERR");
+                    }
+                    setLoaded(true);
+                }
+                load();
+                return () => mounted = false;
+            }, [assetId]);
+
+            let transformClass = "scale-95 object-contain";
+            if (isHuge) transformClass = "scale-[1.60] object-cover drop-shadow-[0_0_15px_rgba(234,179,8,0.7)]";
+            else if (isBig) transformClass = "scale-[1.15] object-contain drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]";
+
+            if (!loaded) return <div className={`bg-zinc-800/50 animate-pulse rounded-2xl ${sizeClass}`}></div>;
+
+            return (
+                <div className={`relative flex items-center justify-center rounded-2xl overflow-hidden bg-zinc-900/50 border border-zinc-700/50 ${isHuge ? 'border-yellow-500/50 shadow-[inset_0_0_30px_rgba(234,179,8,0.2)]' : ''} ${sizeClass}`}>
+                    <img src={imgUrl} loading="lazy" className={`w-full h-full transition-transform duration-500 ${transformClass}`} referrerPolicy="no-referrer" />
+                    {isShiny && shinyOverlayUrl && (
+                        <img src={shinyOverlayUrl} className={`absolute inset-0 w-full h-full object-cover shiny-overlay pointer-events-none z-20 ${isHuge ? 'scale-[1.60]' : isBig ? 'scale-[1.15]' : 'scale-95'}`} referrerPolicy="no-referrer" />
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const GROUP_ID = 207021245;
+            
+            const [activeTab, setActiveTab] = React.useState('home');
+            const [groupData, setGroupData] = React.useState(null);
+            const [gamesData, setGamesData] = React.useState([]);
+            const [wallPosts, setWallPosts] = React.useState([]);
+            const [robloxLoading, setRobloxLoading] = React.useState(true);
+            const [selectedGame, setSelectedGame] = React.useState(null);
+
+            const [search, setSearch] = React.useState('');
+            const [rarityFilter, setRarityFilter] = React.useState('All');
+            const [variantFilter, setVariantFilter] = React.useState('All');
+            const [sortBy, setSortBy] = React.useState('Chance (Asc)');
+            const [viewMode, setViewMode] = React.useState('grid');
+            const [selectedSlug, setSelectedSlug] = React.useState(null);
+            const [slugDataWithExists, setSlugDataWithExists] = React.useState([]);
+            const [dbLoading, setDbLoading] = React.useState(true);
+            const [dbError, setDbError] = React.useState('');
+            const [toasts, setToasts] = React.useState([]);
+            const [bookmarks, setBookmarks] = React.useState(new Set());
+            const [showBookmarksOnly, setShowBookmarksOnly] = React.useState(false);
+            const [shinyOverlayUrl, setShinyOverlayUrl] = React.useState(null);
+
+            React.useEffect(() => {
+                const saved = localStorage.getItem('1gc_bookmarks');
+                if (saved) setBookmarks(new Set(JSON.parse(saved)));
+                
+                fetch(`https://indexer-t9l1.onrender.com/api/proxy/thumbnail/84696847629147`)
+                    .then(res => res.json())
+                    .then(data => setShinyOverlayUrl(data.imageUrl)).catch(() => {});
+                
+                fetchDbData();
+                fetchRobloxData();
+            }, []);
+
+            const fetchRobloxData = async () => {
+                setRobloxLoading(true);
+                try {
+                    const groupRes = await fetch(`https://groups.roproxy.com/v1/groups/${GROUP_ID}`);
+                    const groupInfo = await groupRes.json();
+                    
+                    const gamesRes = await fetch(`https://games.roproxy.com/v2/groups/${GROUP_ID}/games?accessFilter=Public&limit=10&sortOrder=Desc`);
+                    const gamesList = await gamesRes.json();
+
+                    const detailedGames = await Promise.all((gamesList.data || []).map(async (g) => {
+                        const uId = g.id;
+                        try {
+                            const [info, votes, favs, icon, thumbs] = await Promise.all([
+                                fetch(`https://games.roproxy.com/v1/games?universeIds=${uId}`).then(r=>r.json()),
+                                fetch(`https://games.roproxy.com/v1/games/votes?universeIds=${uId}`).then(r=>r.json()),
+                                fetch(`https://games.roproxy.com/v1/games/${uId}/favorites/count`).then(r=>r.json()),
+                                fetch(`https://thumbnails.roproxy.com/v1/games/icons?universeIds=${uId}&size=512x512&format=Png&isCircular=false`).then(r=>r.json()),
+                                fetch(`https://thumbnails.roproxy.com/v1/games/multiget/thumbnails?universeIds=${uId}&countPerUniverse=10&defaults=true&size=768x432&format=Png&type=GameThumbnail`).then(r=>r.json())
+                            ]);
+                            return {
+                                ...info.data[0],
+                                upVotes: votes.data[0]?.upVotes || 0,
+                                downVotes: votes.data[0]?.downVotes || 0,
+                                favorites: favs.favoritesCount || 0,
+                                iconUrl: icon.data[0]?.imageUrl || 'https://placehold.co/512x512/0a0a0c/3f3f46?text=No+Icon',
+                                thumbnails: (thumbs.data[0]?.thumbnails || []).map(t=>t.imageUrl)
+                            };
+                        } catch (e) { return null; }
+                    }));
+
+                    const validGames = detailedGames.filter(g => g !== null);
+
+                    const wallRes = await fetch(`https://groups.roproxy.com/v2/groups/${GROUP_ID}/wall/posts?limit=10&sortOrder=Desc`);
+                    const wallData = await wallRes.json();
+
+                    setGroupData(groupInfo);
+                    setGamesData(validGames);
+                    setWallPosts(wallData.data || []);
+
+                } catch (err) {
+                    console.error("Roblox API Error:", err);
+                }
+                setRobloxLoading(false);
+            };
+
+            const fetchDbData = async () => {
+                setDbLoading(true);
+                setDbError('');
+                try {
+                    const res = await fetch('https://indexer-t9l1.onrender.com/api/get-all-slugs');
+                    if (!res.ok) throw new Error('API Offline');
+                    const data = await res.json();
+                    const existMap = new Map();
+                    if (data.slugs) data.slugs.forEach(s => existMap.set(s.slugName, s.totalExists));
+                    setSlugDataWithExists(ALL_SLUGS.map(slug => ({ ...slug, totalExists: existMap.get(slug.Name) || 0 })));
+                } catch (err) {
+                    setDbError(err.message);
+                    setSlugDataWithExists(ALL_SLUGS.map(s => ({ ...s, totalExists: 'N/A' })));
+                } finally {
+                    setDbLoading(false);
+                }
+            };
+
+            const addToast = (msg, type = 'info') => {
+                const id = Date.now();
+                setToasts(prev => [...prev, { id, message: msg, type }]);
+                setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+            };
+
+            const toggleBookmark = (slugName, e) => {
+                e.stopPropagation();
+                const updated = new Set(bookmarks);
+                if (updated.has(slugName)) { updated.delete(slugName); addToast('Removed from collection', 'info'); }
+                else { updated.add(slugName); addToast('Saved to collection', 'success'); }
+                setBookmarks(updated);
+                localStorage.setItem('1gc_bookmarks', JSON.stringify([...updated]));
+            };
+
+            const filteredData = React.useMemo(() => {
+                let res = [...slugDataWithExists];
+                if (search) res = res.filter(s => s.Name.toLowerCase().includes(search.toLowerCase()));
+                if (rarityFilter !== 'All') res = res.filter(s => s.Rarity === rarityFilter);
+                if (variantFilter !== 'All') res = res.filter(s => s.VariantLabel === variantFilter);
+                if (showBookmarksOnly) res = res.filter(s => bookmarks.has(s.Name));
+
+                res.sort((a, b) => {
+                    switch (sortBy) {
+                        case 'Chance (Asc)': return a.Chance - b.Chance;
+                        case 'Chance (Desc)': return b.Chance - a.Chance;
+                        case 'Name (A-Z)': return a.Name.localeCompare(b.Name);
+                        case 'Name (Z-A)': return b.Name.localeCompare(a.Name);
+                        case 'Exists (High-Low)': return (typeof b.totalExists === 'number' ? b.totalExists : -1) - (typeof a.totalExists === 'number' ? a.totalExists : -1);
+                        case 'Power (High-Low)': return (b.BaseDamage + b.BaseHealth) - (a.BaseDamage + a.BaseHealth);
+                        default: return 0;
+                    }
+                });
+                return res;
+            }, [slugDataWithExists, search, rarityFilter, variantFilter, sortBy, showBookmarksOnly, bookmarks]);
+
+            const totalGlobalExists = slugDataWithExists.reduce((acc, curr) => acc + (typeof curr.totalExists === 'number' ? curr.totalExists : 0), 0);
+            const totalCCU = gamesData.reduce((acc, curr) => acc + (curr.playing || 0), 0);
+            const totalVisits = gamesData.reduce((acc, curr) => acc + (curr.visits || 0), 0);
+
+            return (
+                <div className="min-h-screen flex flex-col relative">
+                    <div className="fixed inset-0 z-[-1] bg-[#050505]">
+                        <div className="absolute top-0 left-1/4 w-96 h-96 bg-yellow-500/5 rounded-full blur-[120px]"></div>
+                        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[150px]"></div>
+                    </div>
+
+                    <header className="sticky top-0 z-40 glass border-b-0 border-zinc-800/50 shadow-2xl shadow-black/50">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex flex-col md:flex-row items-center justify-between py-4 gap-4">
+                                <div className="flex items-center gap-4 cursor-pointer" onClick={() => setActiveTab('home')}>
+                                    <img 
+                                        src="https://iili.io/ByoZr37.md.png" 
+                                        alt="1GC Logo" 
+                                        className="w-12 h-12 rounded-xl border border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.2)] object-cover" 
+                                    />
+                                    <div>
+                                        <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                                            1GC <span className="gold-gradient-text">Studios</span>
+                                        </h1>
+                                        <div className="text-[10px] text-zinc-400 font-bold tracking-widest uppercase">Nairobi, Kenya</div>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex flex-wrap items-center bg-zinc-900/60 p-1.5 rounded-xl border border-zinc-800/50 gap-1 w-full md:w-auto">
+                                    <button onClick={() => setActiveTab('home')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'home' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'}`}>
+                                        <Icons.Home /> Home
+                                    </button>
+                                    <button onClick={() => setActiveTab('games')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'games' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'}`}>
+                                        <Icons.Gamepad /> Games
+                                    </button>
+                                    <button onClick={() => setActiveTab('database')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'database' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'}`}>
+                                        <Icons.Database /> Database
+                                    </button>
+                                    <button onClick={() => setActiveTab('about')} className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'about' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'}`}>
+                                        <Icons.Info /> About
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 w-full relative z-10 pb-20">
+                        
+                        {activeTab === 'home' && (
+                            <div className="fade-in">
+                                <div className="hero-banner relative w-full h-[500px] flex items-end pb-12 border-b border-zinc-800">
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent"></div>
+                                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col md:flex-row justify-between items-end gap-6">
+                                        <div>
+                                            <div className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-xs font-bold uppercase tracking-widest rounded-full mb-4">Official Studio Portal</div>
+                                            <h2 className="text-5xl md:text-7xl font-black text-white mb-2 tracking-tighter">1GC Studios</h2>
+                                            <p className="text-zinc-300 text-lg md:text-xl max-w-2xl font-medium">Developing next-generation Roblox experiences from the heart of Nairobi. Push boundaries, break records.</p>
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <button onClick={() => setActiveTab('games')} className="bg-yellow-500 hover:bg-yellow-400 text-zinc-950 px-8 py-3.5 rounded-xl font-bold transition-colors flex items-center gap-2">
+                                                <Icons.Gamepad /> Our Games
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-[-40px] relative z-20">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
+                                        <div className="glass-card p-6 rounded-2xl flex flex-col">
+                                            <div className="text-zinc-500 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-2"><Icons.Users /> Members</div>
+                                            <div className="text-3xl font-black text-white">{robloxLoading ? '...' : formatNumber(groupData?.memberCount || 0)}</div>
+                                        </div>
+                                        <div className="glass-card p-6 rounded-2xl flex flex-col">
+                                            <div className="text-zinc-500 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-2"><Icons.Eye /> Total Visits</div>
+                                            <div className="text-3xl font-black text-white">{robloxLoading ? '...' : formatNumber(totalVisits)}</div>
+                                        </div>
+                                        <div className="glass-card p-6 rounded-2xl flex flex-col">
+                                            <div className="text-zinc-500 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-2"><Icons.Gamepad /> Active Players</div>
+                                            <div className="text-3xl font-black text-emerald-400 flex items-center gap-2">
+                                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                {robloxLoading ? '...' : formatNumber(totalCCU)}
+                                            </div>
+                                        </div>
+                                        <div className="glass-card p-6 rounded-2xl flex flex-col cursor-pointer hover:border-yellow-500/50" onClick={() => setActiveTab('database')}>
+                                            <div className="text-zinc-500 font-bold text-xs uppercase tracking-widest mb-1 flex items-center gap-2"><Icons.Database /> Tracked Slugs</div>
+                                            <div className="text-3xl font-black gold-gradient-text">{formatNumber(totalGlobalExists)}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                        <div className="lg:col-span-2 space-y-6">
+                                            <h3 className="text-2xl font-black text-white flex items-center gap-2"><Icons.Gamepad /> Featured Game</h3>
+                                            {robloxLoading ? (
+                                                <div className="glass-card h-64 rounded-2xl animate-pulse bg-zinc-900/50"></div>
+                                            ) : gamesData.length > 0 ? (
+                                                <div className="glass-card p-6 rounded-2xl flex flex-col md:flex-row gap-6 items-center md:items-start cursor-pointer" onClick={() => { setSelectedGame(gamesData[0]); setActiveTab('games'); }}>
+                                                    <img src={gamesData[0].iconUrl} className="w-48 h-48 rounded-2xl object-cover border border-zinc-700/50 shadow-xl" />
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <h4 className="text-3xl font-black text-white">{gamesData[0].name}</h4>
+                                                            <div className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                                                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> {gamesData[0].playing.toLocaleString()} CCU
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">{gamesData[0].description}</p>
+                                                        <div className="flex gap-4">
+                                                            <div className="bg-zinc-900/80 px-4 py-2 rounded-xl border border-zinc-800">
+                                                                <div className="text-[10px] text-zinc-500 uppercase font-bold">Visits</div>
+                                                                <div className="font-mono font-bold text-white">{formatNumber(gamesData[0].visits)}</div>
+                                                            </div>
+                                                            <div className="bg-zinc-900/80 px-4 py-2 rounded-xl border border-zinc-800">
+                                                                <div className="text-[10px] text-zinc-500 uppercase font-bold">Favorites</div>
+                                                                <div className="font-mono font-bold text-white">{formatNumber(gamesData[0].favorites)}</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : null}
+                                        </div>
+
+                                        <div className="space-y-6">
+                                            <h3 className="text-2xl font-black text-white flex items-center gap-2"><Icons.Info /> Latest News</h3>
+                                            <div className="glass-card rounded-2xl overflow-hidden flex flex-col max-h-[400px]">
+                                                <div className="p-4 border-b border-zinc-800/50 bg-zinc-900/50">
+                                                    <div className="font-bold text-sm text-zinc-300">Group Wall Feed</div>
+                                                </div>
+                                                <div className="overflow-y-auto custom-scrollbar p-4 space-y-4 flex-1">
+                                                    {robloxLoading ? (
+                                                        <div className="text-center text-zinc-500 py-10 font-medium">Syncing feed...</div>
+                                                    ) : wallPosts.length > 0 ? (
+                                                        wallPosts.map(post => (
+                                                            <div key={post.id} className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800/50">
+                                                                <div className="flex justify-between items-center mb-2">
+                                                                    <div className="font-bold text-sm text-yellow-500">{post.poster.user.username}</div>
+                                                                    <div className="text-[10px] text-zinc-500">{new Date(post.created).toLocaleDateString()}</div>
+                                                                </div>
+                                                                <div className="text-sm text-zinc-300 break-words">{post.body}</div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="text-center text-zinc-500 py-10 font-medium">No recent posts.</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'games' && (
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 fade-in">
+                                <div className="mb-10 text-center">
+                                    <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4">Our Experiences</h2>
+                                    <p className="text-zinc-400 max-w-2xl mx-auto">Explore the portfolio of games developed by 1GC Studios. Click on any title to view detailed live analytics and media.</p>
+                                </div>
+
+                                {robloxLoading ? (
+                                    <div className="flex justify-center items-center py-32"><Icons.Refresh c="animate-spin w-10 h-10 text-yellow-500" /></div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                        {gamesData.map((game, idx) => {
+                                            const totalVotes = game.upVotes + game.downVotes;
+                                            const ratio = totalVotes > 0 ? (game.upVotes / totalVotes) * 100 : 0;
+                                            
+                                            return (
+                                                <div key={game.id} onClick={() => setSelectedGame(game)} className="glass-card rounded-2xl p-4 cursor-pointer group slide-up" style={{ animationDelay: `${idx * 0.05}s` }}>
+                                                    <div className="relative rounded-xl overflow-hidden mb-4 bg-zinc-900 border border-zinc-800/50 aspect-square">
+                                                        <img src={game.iconUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                                        <div className="absolute top-2 right-2 bg-zinc-950/80 backdrop-blur px-2.5 py-1 rounded-md text-xs font-bold border border-zinc-700 flex items-center gap-1.5">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                            {formatNumber(game.playing)}
+                                                        </div>
+                                                    </div>
+                                                    <h3 className="font-bold text-xl text-white truncate mb-1">{game.name}</h3>
+                                                    <div className="flex justify-between items-center text-xs text-zinc-400 font-medium mb-3">
+                                                        <span>{formatNumber(game.visits)} Visits</span>
+                                                        <span className="flex items-center gap-1"><Icons.Star /> {formatNumber(game.favorites)}</span>
+                                                    </div>
+                                                    <div className="w-full">
+                                                        <div className="flex justify-between text-[10px] font-bold text-zinc-500 mb-1">
+                                                            <span className="flex items-center gap-1 text-emerald-400"><Icons.ThumbsUp /> {formatNumber(game.upVotes)}</span>
+                                                            <span className="flex items-center gap-1 text-red-400"><Icons.ThumbsDown /> {formatNumber(game.downVotes)}</span>
+                                                        </div>
+                                                        <div className="ratio-bar-bg"><div className="ratio-bar-fg" style={{width: `${ratio}%`}}></div></div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'database' && (
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 fade-in space-y-6">
+                                <div className="mb-6">
+                                    <h2 className="text-4xl font-black text-white tracking-tighter mb-2">Slug Database</h2>
+                                    <p className="text-zinc-400">Live global population tracking for Slug RNG variants.</p>
+                                </div>
+
+                                {dbError && <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-medium">Database Sync Error: {dbError}</div>}
+
+                                <div className="glass-card p-5 rounded-2xl flex flex-col lg:flex-row gap-4 justify-between items-center relative z-20">
+                                    <div className="flex flex-wrap gap-3 w-full lg:w-auto">
+                                        <div className="relative flex-1 sm:w-64">
+                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"><Icons.Search /></div>
+                                            <input type="text" placeholder="Search variants..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-zinc-900/50 border border-zinc-700/50 focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 outline-none text-sm transition-all text-white placeholder-zinc-500" />
+                                        </div>
+                                        <select value={variantFilter} onChange={(e) => setVariantFilter(e.target.value)} className="py-2.5 px-4 rounded-xl bg-zinc-900/50 border border-zinc-700/50 text-white outline-none text-sm cursor-pointer hover:border-yellow-500/30 transition-colors">
+                                            {['All', 'Normal', 'Big', 'Huge', 'Shiny', 'Shiny Big', 'Shiny Huge'].map(r => <option key={r} value={r} className="bg-zinc-900">{r === 'Normal' ? 'Base Only' : r}</option>)}
+                                        </select>
+                                        <select value={rarityFilter} onChange={(e) => setRarityFilter(e.target.value)} className="py-2.5 px-4 rounded-xl bg-zinc-900/50 border border-zinc-700/50 text-white outline-none text-sm cursor-pointer hover:border-yellow-500/30 transition-colors">
+                                            {['All', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Godly', 'Omnipotent'].map(r => <option key={r} value={r} className="bg-zinc-900">{r}</option>)}
+                                        </select>
+                                        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="py-2.5 px-4 rounded-xl bg-zinc-900/50 border border-zinc-700/50 text-white outline-none text-sm cursor-pointer hover:border-yellow-500/30 transition-colors">
+                                            {['Chance (Asc)', 'Chance (Desc)', 'Name (A-Z)', 'Exists (High-Low)', 'Power (High-Low)'].map(s => <option key={s} value={s} className="bg-zinc-900">{s}</option>)}
+                                        </select>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 w-full lg:w-auto justify-end">
+                                        <button onClick={fetchDbData} disabled={dbLoading} className="p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-700/50 text-zinc-400 hover:text-white hover:border-yellow-500/30 transition-all">
+                                            <Icons.Refresh c={dbLoading ? "animate-spin text-yellow-500" : ""} />
+                                        </button>
+                                        <button onClick={() => setShowBookmarksOnly(!showBookmarksOnly)} className={`p-2.5 rounded-xl border transition-all ${showBookmarksOnly ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-500' : 'bg-zinc-900/50 border-zinc-700/50 text-zinc-400 hover:text-white hover:border-yellow-500/30'}`}>
+                                            <Icons.Bookmark f={showBookmarksOnly} />
+                                        </button>
+                                        <div className="h-8 w-px bg-zinc-700/50 mx-2"></div>
+                                        <div className="flex bg-zinc-900/50 border border-zinc-700/50 rounded-xl p-1">
+                                            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}><Icons.Grid /></button>
+                                            <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-zinc-300'}`}><Icons.List /></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {dbLoading && !slugDataWithExists.length ? (
+                                    <div className="flex justify-center items-center h-64"><Icons.Refresh c="animate-spin w-10 h-10 text-yellow-500" /></div>
+                                ) : (
+                                    <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 relative z-10' : 'flex flex-col gap-3 relative z-10'}>
+                                        {filteredData.map((slug, idx) => {
+                                            const isBk = bookmarks.has(slug.Name);
+                                            if (viewMode === 'grid') {
+                                                return (
+                                                    <div key={slug.Name} onClick={() => setSelectedSlug(slug)} className="glass-card rounded-2xl p-4 cursor-pointer relative group flex flex-col items-center text-center slide-up" style={{ animationDelay: `${(idx % 20) * 0.02}s` }}>
+                                                        <button onClick={(e) => toggleBookmark(slug.Name, e)} className="absolute top-3 right-3 p-1.5 rounded-full bg-zinc-950/80 backdrop-blur opacity-0 group-hover:opacity-100 transition-all z-30 border border-zinc-700">
+                                                            <Icons.Bookmark f={isBk} c={isBk ? "text-yellow-500" : "text-white"} />
+                                                        </button>
+                                                        
+                                                        <RobloxImage assetId={slug.Image} isShiny={slug.IsShiny} isBig={slug.IsBig} isHuge={slug.IsHuge} shinyOverlayUrl={shinyOverlayUrl} sizeClass="w-24 h-24 mb-4" />
+                                                        
+                                                        <h3 className="font-bold text-sm text-zinc-100 truncate w-full mb-1">{slug.Name}</h3>
+                                                        <span className={`text-[10px] px-2.5 py-0.5 font-bold uppercase tracking-wider rounded-full border mb-3 ${RARITY_COLORS[slug.Rarity]}`}>{slug.Rarity}</span>
+                                                        
+                                                        <div className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl p-2 mt-auto">
+                                                            <div className="text-[10px] text-zinc-500 font-medium uppercase">Global Exists</div>
+                                                            <div className="font-mono text-sm font-bold text-yellow-500">{typeof slug.totalExists === 'number' ? formatNumber(slug.totalExists) : slug.totalExists}</div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                            return (
+                                                <div key={slug.Name} onClick={() => setSelectedSlug(slug)} className="glass-card rounded-2xl p-3 cursor-pointer flex items-center gap-5 slide-up">
+                                                    <RobloxImage assetId={slug.Image} isShiny={slug.IsShiny} isBig={slug.IsBig} isHuge={slug.IsHuge} shinyOverlayUrl={shinyOverlayUrl} sizeClass="w-16 h-16 flex-shrink-0" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-3 mb-1">
+                                                            <h3 className="font-bold text-lg text-white truncate">{slug.Name}</h3>
+                                                            <span className={`text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-full border ${RARITY_COLORS[slug.Rarity]}`}>{slug.Rarity}</span>
+                                                            {isBk && <Icons.Bookmark f={true} c="text-yellow-500 w-4 h-4" />}
+                                                        </div>
+                                                        <div className="flex gap-5 text-sm font-medium text-zinc-500">
+                                                            <div>1 in {formatNumber(slug.Chance)}</div>
+                                                            <div className="flex items-center gap-1"><Icons.Sword /> {formatNumber(slug.BaseDamage)}</div>
+                                                            <div className="flex items-center gap-1"><Icons.Heart /> {formatNumber(slug.BaseHealth)}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right pl-6 border-l border-zinc-800">
+                                                        <div className="text-[10px] text-zinc-500 font-medium uppercase mb-1">Population</div>
+                                                        <div className="font-mono font-bold text-lg text-yellow-500">{typeof slug.totalExists === 'number' ? formatNumber(slug.totalExists) : slug.totalExists}</div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {filteredData.length === 0 && <div className="col-span-full py-20 text-center text-zinc-500 font-medium">No variants found matching criteria.</div>}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'about' && (
+                            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 fade-in">
+                                <div className="text-center mb-12">
+                                    <div className="inline-block px-4 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-sm font-bold uppercase tracking-widest rounded-full mb-6">About The Studio</div>
+                                    <h2 className="text-5xl font-black text-white tracking-tighter mb-6">Born in Nairobi.<br/>Played Worldwide.</h2>
+                                    <p className="text-zinc-400 text-lg leading-relaxed max-w-2xl mx-auto">1GC Studios is a premier game development collective based in Nairobi, Kenya. We specialize in building highly scalable, mathematically rigorous, and intensely engaging experiences on the Roblox platform.</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                                    <div className="glass-card p-8 rounded-3xl text-center flex flex-col items-center justify-center">
+                                        <div className="w-16 h-16 rounded-full bg-[#5865F2]/10 flex items-center justify-center text-[#5865F2] mb-4">
+                                            <Icons.Discord />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-white mb-2">Join The Community</h3>
+                                        <p className="text-zinc-400 text-sm mb-6">Connect with developers, get exclusive sneak peeks, and trade with thousands of other players.</p>
+                                        <a href="https://discord.com/invite/tPeH6e84t5" target="_blank" rel="noreferrer" className="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-bold py-3 rounded-xl transition-colors">Join Discord Server</a>
+                                    </div>
+                                    <div className="glass-card p-8 rounded-3xl text-center flex flex-col items-center justify-center">
+                                        <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center text-yellow-500 mb-4">
+                                            <Icons.Gamepad />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-white mb-2">Play Slug RNG</h3>
+                                        <p className="text-zinc-400 text-sm mb-6">Our flagship title. Roll for the rarest slugs in existence, upgrade your luck, and dominate.</p>
+                                        <a href="https://www.roblox.com/games/86351439198186/Slug-RNG" target="_blank" rel="noreferrer" className="w-full bg-yellow-500 hover:bg-yellow-400 text-zinc-950 font-bold py-3 rounded-xl transition-colors">Play on Roblox</a>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {}
+                    {selectedGame && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md fade-in" onClick={() => setSelectedGame(null)}>
+                            <div className="glass-card bg-[#0a0a0c] rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar border border-zinc-700/50 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+                                <button onClick={() => setSelectedGame(null)} className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-zinc-800 transition-colors z-40 border border-zinc-700"><Icons.X /></button>
+                                
+                                <div className="relative h-64 md:h-80 w-full overflow-hidden">
+                                    <img src={selectedGame.thumbnails && selectedGame.thumbnails.length > 0 ? selectedGame.thumbnails[0] : selectedGame.iconUrl} className="w-full h-full object-cover opacity-50 blur-sm" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] to-transparent"></div>
+                                    <div className="absolute bottom-6 left-6 right-6 flex items-end gap-6">
+                                        <img src={selectedGame.iconUrl} className="w-32 h-32 rounded-2xl border-2 border-zinc-700 shadow-2xl object-cover" />
+                                        <div className="flex-1 pb-2">
+                                            <h2 className="text-3xl md:text-4xl font-black text-white mb-2">{selectedGame.name}</h2>
+                                            <div className="flex flex-wrap gap-3">
+                                                <div className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5">
+                                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> {selectedGame.playing.toLocaleString()} Playing
+                                                </div>
+                                                <div className="bg-zinc-800/80 text-zinc-300 border border-zinc-700 px-3 py-1.5 rounded-lg text-sm font-bold">
+                                                    By {selectedGame.creator?.name || '1GC Studios'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="p-6 md:p-8">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                        <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Total Visits</div>
+                                            <div className="font-mono text-xl font-bold text-white">{formatNumber(selectedGame.visits)}</div>
+                                        </div>
+                                        <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Favorites</div>
+                                            <div className="font-mono text-xl font-bold text-white flex items-center gap-2">
+                                                {formatNumber(selectedGame.favorites)} <Icons.Star />
+                                            </div>
+                                        </div>
+                                        <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Server Size</div>
+                                            <div className="font-mono text-xl font-bold text-white">{selectedGame.maxPlayers} Max</div>
+                                        </div>
+                                        <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1">Created</div>
+                                            <div className="font-mono text-xl font-bold text-white">{new Date(selectedGame.created).getFullYear()}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-8">
+                                        <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">Community Rating</h3>
+                                        <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                                            <div className="flex justify-between font-bold text-sm mb-2">
+                                                <span className="flex items-center gap-1 text-emerald-400"><Icons.ThumbsUp /> {formatNumber(selectedGame.upVotes)}</span>
+                                                <span className="flex items-center gap-1 text-red-400"><Icons.ThumbsDown /> {formatNumber(selectedGame.downVotes)}</span>
+                                            </div>
+                                            <div className="ratio-bar-bg h-3">
+                                                <div className="ratio-bar-fg" style={{width: `${(selectedGame.upVotes / ((selectedGame.upVotes + selectedGame.downVotes)||1)) * 100}%`}}></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-8">
+                                        <h3 className="text-lg font-bold text-white mb-3">About</h3>
+                                        <p className="text-zinc-400 text-sm leading-relaxed whitespace-pre-wrap bg-zinc-900/30 p-5 rounded-xl border border-zinc-800/50">{selectedGame.description || "No description provided."}</p>
+                                    </div>
+
+                                    {selectedGame.thumbnails && selectedGame.thumbnails.length > 0 && (
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white mb-3">Gallery</h3>
+                                            <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-4 snap-x">
+                                                {selectedGame.thumbnails.map((url, i) => (
+                                                    <img key={i} src={url} className="w-80 h-44 object-cover rounded-xl border border-zinc-700 snap-center flex-shrink-0" />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-6 bg-zinc-900/80 border-t border-zinc-800 flex justify-end">
+                                    <a href={`https://www.roblox.com/games/${selectedGame.rootPlaceId}`} target="_blank" rel="noreferrer" className="bg-white text-black hover:bg-zinc-200 font-bold px-8 py-3 rounded-xl transition-colors flex items-center gap-2">
+                                        <Icons.Play /> Launch on Roblox
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {}
+                    {selectedSlug && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md fade-in" onClick={() => setSelectedSlug(null)}>
+                            <div className="glass-card bg-[#0a0a0c] rounded-3xl max-w-md w-full overflow-hidden border border-zinc-700/50" onClick={(e) => e.stopPropagation()}>
+                                <div className="relative h-64 bg-zinc-900/50 border-b border-zinc-800 flex items-center justify-center p-6 overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a0a0c] z-10"></div>
+                                    <button onClick={() => setSelectedSlug(null)} className="absolute top-4 right-4 p-2 rounded-full bg-black/50 text-white hover:bg-zinc-800 transition-colors z-40 border border-zinc-700"><Icons.X /></button>
+                                    <RobloxImage assetId={selectedSlug.Image} isShiny={selectedSlug.IsShiny} isBig={selectedSlug.IsBig} isHuge={selectedSlug.IsHuge} shinyOverlayUrl={shinyOverlayUrl} sizeClass="w-48 h-48 z-20" />
+                                </div>
+                                
+                                <div className="p-8 relative">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div>
+                                            <h2 className="text-3xl font-black text-white mb-2">{selectedSlug.Name}</h2>
+                                            <div className="flex flex-wrap gap-2">
+                                                <span className={`text-xs px-3 py-1 font-bold uppercase tracking-wider rounded-full border ${RARITY_COLORS[selectedSlug.Rarity]}`}>{selectedSlug.Rarity}</span>
+                                                {selectedSlug.VariantLabel !== 'Normal' && <span className="text-xs px-3 py-1 font-bold uppercase tracking-wider rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-500">{selectedSlug.VariantLabel}</span>}
+                                            </div>
+                                        </div>
+                                        <div className="text-right bg-zinc-900/80 px-4 py-2 rounded-xl border border-zinc-700/50">
+                                            <div className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Exists</div>
+                                            <div className="text-xl font-mono font-black gold-gradient-text">{typeof selectedSlug.totalExists === 'number' ? selectedSlug.totalExists.toLocaleString() : selectedSlug.totalExists}</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                        <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
+                                            <div className="text-zinc-500 mb-1 text-xs font-bold uppercase">Probability</div>
+                                            <div className="font-mono text-sm font-semibold text-zinc-200">1 in {formatNumber(selectedSlug.Chance)}</div>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
+                                            <div className="text-zinc-500 mb-1 text-xs font-bold uppercase">Asset ID</div>
+                                            <div className="font-mono text-sm font-semibold text-zinc-200">{selectedSlug.Image}</div>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+                                            <div className="flex items-center gap-1 text-red-500 mb-1 text-xs font-bold uppercase"><Icons.Sword /> Damage</div>
+                                            <div className="font-mono text-sm font-semibold text-red-400">{formatNumber(selectedSlug.BaseDamage)}</div>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                                            <div className="flex items-center gap-1 text-emerald-500 mb-1 text-xs font-bold uppercase"><Icons.Heart /> Health</div>
+                                            <div className="font-mono text-sm font-semibold text-emerald-400">{formatNumber(selectedSlug.BaseHealth)}</div>
+                                        </div>
+                                    </div>
+                                    <div className="w-full py-3 bg-zinc-900/50 rounded-xl border border-zinc-800 text-center">
+                                        <span className="text-xs font-bold text-zinc-500 uppercase mr-2">Total Power Limit</span>
+                                        <span className="font-mono font-bold text-yellow-500">{formatNumber(selectedSlug.BaseDamage + selectedSlug.BaseHealth)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+                        {toasts.map(t => (
+                            <div key={t.id} className="toast-enter px-5 py-4 rounded-xl shadow-2xl border flex items-center gap-3 backdrop-blur-md bg-zinc-900/95 border-zinc-800">
+                                {t.type === 'success' ? <div className="w-2 h-2 rounded-full bg-emerald-500"></div> : <div className="w-2 h-2 rounded-full bg-yellow-500"></div>}
+                                <span className="font-semibold text-sm text-white">{t.message}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
